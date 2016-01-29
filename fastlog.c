@@ -147,14 +147,14 @@ fastlog_update_logfile(void)
 		close(manager_ptr->logfd);
 	}
 
-	manager_ptr->logfd = open(fullpath, O_CREAT|O_WRONLY|O_APPEND, 0777);
+	manager_ptr->logfd = open(fullpath, O_CREAT|O_WRONLY|O_APPEND, 0777); //打开日志文件
 
 	return manager_ptr->logfd == -1 ? -1 : 0;
 }
 
 
 void *
-fastlog_thread_worker(void *arg)
+fastlog_thread_worker(void *arg)  //在这儿进行记录日志
 {
 	fd_set read_set;
 	int notify = manager_ptr->notifiers[0];
@@ -191,7 +191,7 @@ do_again:
 
 				/* Get item from worker queue */
 
-				spin_lock(&manager_ptr->qlock);
+				spin_lock(&manager_ptr->qlock);  //下面操作类似于出队列记日志
 
 				item = manager_ptr->head;
 
@@ -271,7 +271,7 @@ get_instance(void)
 	MAKE_STD_ZVAL(instance);
 	object_init_ex(instance, fastlog_ce);
 	/* Add instance to static property */
-	zend_update_static_property(fastlog_ce,
+	zend_update_static_property(fastlog_ce, //读取静态属性
 		ZEND_STRL(FASTLOG_CLASS_INSTANCE_FIELD), instance TSRMLS_CC);
 
 	return instance;
@@ -299,7 +299,7 @@ fastlog_write_log(int level, char *content, int length)
 
 	max_level = zend_read_property(fastlog_ce,
 		instance, ZEND_STRL(FASTLOG_CLASS_LEVEL_FIELD), 0 TSRMLS_CC);
-	if (Z_LVAL_P(max_level) > level) {
+	if (Z_LVAL_P(max_level) > level) {  //得到max_level的值
 		return 0;
 	}
 
@@ -332,7 +332,7 @@ fastlog_write_log(int level, char *content, int length)
 		manager_ptr->head = item;
 	}
 
-	if (manager_ptr->tail) {
+	if (manager_ptr->tail) { //加到尾部，形成链表
 		manager_ptr->tail->next = item;
 	}
 
@@ -341,6 +341,13 @@ fastlog_write_log(int level, char *content, int length)
 	spin_unlock(&manager_ptr->qlock);
 
 	/* notify worker thread */
+	/*
+	ssize_t write(int fd, const void *buf, size_t count);
+      参数：   
+        fd：要进行写操作的文件描述词。
+        buf：需要输出的缓冲区
+        count：最大输出字节计数
+    */
 	result = write(manager_ptr->notifiers[1], "\0", 1);
 
 	return 0;
@@ -375,7 +382,7 @@ PHP_METHOD(FastLog, getInstance)
 }
 
 
-PHP_METHOD(FastLog, init)
+PHP_METHOD(FastLog, init) //参数：  路径 文件名
 {
 	long max_level;
 	char *logpath, *filename;
@@ -394,7 +401,7 @@ PHP_METHOD(FastLog, init)
 		RETURN_FALSE;
 	}
 
-	zend_update_property_long(fastlog_ce, instance,
+	zend_update_property_long(fastlog_ce, instance, //更新属性
 		ZEND_STRL(FASTLOG_CLASS_LEVEL_FIELD), max_level TSRMLS_CC);
 	zend_update_property_string(fastlog_ce, instance,
 		ZEND_STRL(FASTLOG_CLASS_LOGPATH_FIELD), logpath TSRMLS_CC);
@@ -415,7 +422,7 @@ PHP_METHOD(FastLog, init)
 /*
  * FastLog::debug()
  */
-PHP_METHOD(FastLog, debug)
+PHP_METHOD(FastLog, debug)  //输入：字符串
 {
 	char *msg;
 	int msg_len;
@@ -438,7 +445,7 @@ PHP_METHOD(FastLog, debug)
 /*
  * FastLog::notice()
  */
-PHP_METHOD(FastLog, notice)
+PHP_METHOD(FastLog, notice) //输入：字符串
 {
 	char *msg;
 	int msg_len;

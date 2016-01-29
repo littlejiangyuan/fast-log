@@ -353,7 +353,7 @@ fastlog_write_log(int level, char *content, int length)
 	return 0;
 }
 
-
+/*******************************成员函数getInstance init debug notice error*******************************/
 zend_function_entry fastlog_methods[] = {
 	PHP_ME(FastLog, __construct, NULL, ZEND_ACC_PRIVATE|ZEND_ACC_CTOR)
 	PHP_ME(FastLog, getInstance, NULL, ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
@@ -490,7 +490,7 @@ PHP_METHOD(FastLog, error)
 
 /* {{{ PHP_MINIT_FUNCTION
  */
-PHP_MINIT_FUNCTION(fastlog)
+PHP_MINIT_FUNCTION(fastlog)  //模块初始化阶段
 {
 	zend_class_entry ce;
 
@@ -500,15 +500,16 @@ PHP_MINIT_FUNCTION(fastlog)
 
 	fastlog_ce = zend_register_internal_class_ex(&ce, NULL, NULL TSRMLS_CC);
 
+	//定义属性
 	zend_declare_property_null(fastlog_ce,
-		ZEND_STRL(FASTLOG_CLASS_LEVEL_FIELD), ZEND_ACC_PRIVATE TSRMLS_CC);
+		ZEND_STRL(FASTLOG_CLASS_LEVEL_FIELD), ZEND_ACC_PRIVATE TSRMLS_CC); //__level__ 私有成员变量
 	zend_declare_property_null(fastlog_ce,
 		ZEND_STRL(FASTLOG_CLASS_LOGPATH_FIELD), ZEND_ACC_PRIVATE TSRMLS_CC);
 	zend_declare_property_null(fastlog_ce,
 		ZEND_STRL(FASTLOG_CLASS_FILENAME_FIELD), ZEND_ACC_PRIVATE TSRMLS_CC);
 	zend_declare_property_null(fastlog_ce,
-		ZEND_STRL(FASTLOG_CLASS_INSTANCE_FIELD), ZEND_ACC_PRIVATE|ZEND_ACC_STATIC TSRMLS_CC);
-
+		ZEND_STRL(FASTLOG_CLASS_INSTANCE_FIELD), ZEND_ACC_PRIVATE|ZEND_ACC_STATIC TSRMLS_CC);//私有，静态成员变量
+	//声明常量
 	zend_declare_class_constant_long(fastlog_ce,
 		ZEND_STRL("DEBUG"), FASTLOG_DEUBG_LEVEL TSRMLS_CC);
 	zend_declare_class_constant_long(fastlog_ce,
